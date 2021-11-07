@@ -18,19 +18,18 @@ const char TOKEN_KIND_ERROR = 'E';
 
 const double INVALID_VALUE = DBL_MIN;
 
-class Token {
-public:
+struct Token {
     char kind;
     double value;
 
-    Token() : kind(TOKEN_KIND_UNSET) {}
-    Token(char k) : kind(k), value(0.0) {}
-    Token(double v) : kind(TOKEN_KIND_NUMBER), value(v) {}
-    Token(char k, double v) : kind(k), value(v) {}
+    Token() : kind{TOKEN_KIND_UNSET} {}
+    Token(char k) : kind{k}, value{0.0} {}
+    Token(double v) : kind{TOKEN_KIND_NUMBER}, value{v} {}
+    Token(char k, double v) : kind{k}, value(v) {}
 
     string str() {
         ostringstream s;
-        s << "Token(kind: " << kind << ", value: " << value << ")";
+        s << "Token{kind: " << kind << ", value: " << value << "}";
         return s.str();
     }
 };
@@ -38,40 +37,44 @@ public:
 class TokenStream {
 public:
     Token get() {
-        Token t;
-
         if (m_next_token.kind != TOKEN_KIND_UNSET) {
-            t = m_next_token;
-            m_next_token = Token();
+            Token t {m_next_token};
+            m_next_token = Token{};
+            return t;
         } else {
-            // bug: eats + and - signs
-            double d;
-            cin >> d;
+            char c;
+            cin >> c;
 
-            //cout << "d: " << d << endl;
+            switch (c) {
+            case TOKEN_KIND_EVAL:
+            case TOKEN_KIND_QUIT:
+            case TOKEN_KIND_PLUS:
+            case TOKEN_KIND_MINUS:
+            case TOKEN_KIND_MUL:
+            case TOKEN_KIND_DIV:
+                // let these characters represent itself
+                return Token {c};
 
-            if (cin) {
-                t = Token(d);
-                //cout << t.str() << endl;
-            } else {
-                char c;
-                cin >> c;
-
-                //cout << "c: " << c << endl;
-
-                if (cin) {
-                    t = Token(c);
-                    //cout << t.str() << endl;
-                } else {
-                    t = Token(TOKEN_KIND_ERROR);
+            case '.':
+            case '0': case '1': case '2': case '3': case '4': 
+            case '5': case '6': case '7': case '8': case '9': 
+                {
+                    cin.putback(c); // put digit back onto input stream
+                    double val;
+                    cin >> val;
+                    return Token {val};
                 }
+                
+            default:
+                throw("bad token");
             }
         }
-
-        return t;
     }
 
-    void push_back(Token t) {
+    void putback(Token t) {
+        if (m_next_token.kind != TOKEN_KIND_UNSET) {
+            throw("buffer is full");
+        }
         m_next_token = t;
     }
 
@@ -115,7 +118,7 @@ double term()
             }
 
             default:
-                ts.push_back(t);
+                ts.putback(t);
                 return left;
         }
     }
@@ -141,7 +144,7 @@ double expression()
 
             default:
                 // bug: t is not plus or minus but we've already stolen the next input
-                ts.push_back(t);
+                ts.putback(t);
                 return left; // term as expression
         }
     }
@@ -156,13 +159,14 @@ int main() {
             Token t = ts.get();
 
             if (t.kind == TOKEN_KIND_QUIT) {
+                cout << "quitting" << endl;
                 break;
             }
 
             if (t.kind == TOKEN_KIND_EVAL) {
                 cout << "= " << val << endl;
             } else {
-                ts.push_back(t);
+                ts.putback(t);
             }
 
             val = expression();
