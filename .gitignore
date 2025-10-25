@@ -36,3 +36,6 @@
 
 # Misc
 token
+
+# Visual Studio
+.vs/
