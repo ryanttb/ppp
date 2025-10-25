@@ -6,14 +6,15 @@ INCLUDES =
 LIBS = 
 
 # Directories
-SRC_DIR = chaos
 OBJ_DIR = obj
 BIN_DIR = bin
 
-# Source files (manually list them)
-SOURCES = chaos\rule_of_three.cpp
-OBJECTS = obj\rule_of_three.obj
-TARGETS = bin\rule_of_three.exe
+# Programs to build (add new ones here)
+PROGRAMS = chaos\rule_of_three c06\calc
+
+# Generate targets and objects
+TARGETS = bin\chaos\rule_of_three.exe bin\c06\calc.exe
+OBJECTS = obj\chaos\rule_of_three.obj obj\c06\calc.obj
 
 # Default target
 all: $(TARGETS)
@@ -26,27 +27,39 @@ $(BIN_DIR):
 	@if not exist "$(BIN_DIR)" mkdir "$(BIN_DIR)"
 
 # Build individual executables
-bin\rule_of_three.exe: obj\rule_of_three.obj
-	@if not exist "$(BIN_DIR)" mkdir "$(BIN_DIR)"
-	$(CC) $(CFLAGS) obj\rule_of_three.obj /Fe$@ $(LIBS)
+bin\chaos\rule_of_three.exe: obj\chaos\rule_of_three.obj
+	@if not exist "bin\chaos" mkdir "bin\chaos"
+	$(CC) $(CFLAGS) obj\chaos\rule_of_three.obj /Fe$@ $(LIBS)
+
+bin\c06\calc.exe: obj\c06\calc.obj
+	@if not exist "bin\c06" mkdir "bin\c06"
+	$(CC) $(CFLAGS) obj\c06\calc.obj /Fe$@ $(LIBS)
 
 # Compile source files to object files
-obj\rule_of_three.obj: chaos\rule_of_three.cpp
-	@if not exist "$(OBJ_DIR)" mkdir "$(OBJ_DIR)"
+obj\chaos\rule_of_three.obj: chaos\rule_of_three.cpp
+	@if not exist "obj\chaos" mkdir "obj\chaos"
 	$(CC) $(CFLAGS) /c chaos\rule_of_three.cpp /Fo$@
+
+obj\c06\calc.obj: c06\calc.cpp
+	@if not exist "obj\c06" mkdir "obj\c06"
+	$(CC) $(CFLAGS) /c c06\calc.cpp /Fo$@
 
 # Clean build artifacts
 clean:
 	@if exist "$(OBJ_DIR)" rmdir /s /q "$(OBJ_DIR)"
 	@if exist "$(BIN_DIR)" rmdir /s /q "$(BIN_DIR)"
 
-# Run a specific program (usage: make run PROGRAM=rule_of_three)
+# Run a specific program (usage: make run PROGRAM=chaos\rule_of_three)
 run: bin\$(PROGRAM).exe
 	bin\$(PROGRAM).exe
 
 # Build and run rule_of_three specifically
-test: bin\rule_of_three.exe
-	bin\rule_of_three.exe
+test: bin\chaos\rule_of_three.exe
+	bin\chaos\rule_of_three.exe
+
+# Build and run calculator
+calc: bin\c06\calc.exe
+	bin\c06\calc.exe
 
 # Show help
 help:
@@ -54,7 +67,8 @@ help:
 	@echo   all     - Build all programs
 	@echo   clean   - Remove all build artifacts
 	@echo   test    - Build and run rule_of_three
-	@echo   run     - Run a specific program (use PROGRAM=name)
+	@echo   calc    - Build and run calculator
+	@echo   run     - Run a specific program (use PROGRAM=dir\name)
 	@echo   help    - Show this help
 
-.PHONY: all clean run test help
+.PHONY: all clean run test calc help
