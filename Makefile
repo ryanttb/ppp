@@ -10,11 +10,11 @@ OBJ_DIR = obj
 BIN_DIR = bin
 
 # Programs to build (add new ones here)
-PROGRAMS = chaos\rule_of_three c06\calc c05\drill chaos\value_categories
+PROGRAMS = chaos\rule_of_three c06\calc c05\drill chaos\value_categories chaos\concurrency coderpad\quad_sums
 
 # Generate targets and objects
-TARGETS = bin\chaos\rule_of_three.exe bin\c06\calc.exe bin\c05\drill.exe bin\chaos\value_categories.exe
-OBJECTS = obj\chaos\rule_of_three.obj obj\c06\calc.obj obj\c05\drill.obj obj\chaos\value_categories.obj
+TARGETS = bin\chaos\rule_of_three.exe bin\c06\calc.exe bin\c05\drill.exe bin\chaos\value_categories.exe bin\chaos\concurrency.exe bin\coderpad\quad_sums.exe
+OBJECTS = obj\chaos\rule_of_three.obj obj\c06\calc.obj obj\c05\drill.obj obj\chaos\value_categories.obj obj\chaos\concurrency.obj obj\coderpad\quad_sums.obj
 
 # Default target
 all: $(TARGETS)
@@ -43,6 +43,14 @@ bin\chaos\value_categories.exe: obj\chaos\value_categories.obj
 	@if not exist "bin\chaos" mkdir "bin\chaos"
 	$(CC) $(CFLAGS) obj\chaos\value_categories.obj /Fe$@ $(LIBS)
 
+bin\chaos\concurrency.exe: obj\chaos\concurrency.obj
+	@if not exist "bin\chaos" mkdir "bin\chaos"
+	$(CC) $(CFLAGS) obj\chaos\concurrency.obj /Fe$@ $(LIBS)
+
+bin\coderpad\quad_sums.exe: obj\coderpad\quad_sums.obj
+	@if not exist "bin\coderpad" mkdir "bin\coderpad"
+	$(CC) $(CFLAGS) obj\coderpad\quad_sums.obj /Fe$@ $(LIBS)
+
 # Compile source files to object files
 obj\chaos\rule_of_three.obj: chaos\rule_of_three.cpp
 	@if not exist "obj\chaos" mkdir "obj\chaos"
@@ -59,6 +67,14 @@ obj\c06\calc.obj: c06\calc.cpp
 obj\chaos\value_categories.obj: chaos\value_categories.cpp
 	@if not exist "obj\chaos" mkdir "obj\chaos"
 	$(CC) $(CFLAGS) /c chaos\value_categories.cpp /Fo$@
+
+obj\chaos\concurrency.obj: chaos\concurrency.cpp
+	@if not exist "obj\chaos" mkdir "obj\chaos"
+	$(CC) $(CFLAGS) /c chaos\concurrency.cpp /Fo$@
+
+obj\coderpad\quad_sums.obj: coderpad\quad_sums.cpp
+	@if not exist "obj\coderpad" mkdir "obj\coderpad"
+	$(CC) $(CFLAGS) /c coderpad\quad_sums.cpp /Fo$@
 
 # Clean build artifacts
 clean:
@@ -85,6 +101,14 @@ drill: bin\c05\drill.exe
 value_categories: bin\chaos\value_categories.exe
 	bin\chaos\value_categories.exe
 
+# Build and run concurrency
+concurrency: bin\chaos\concurrency.exe
+	bin\chaos\concurrency.exe
+
+# Build and run quad_sums
+quad_sums: bin\coderpad\quad_sums.exe
+	bin\coderpad\quad_sums.exe
+
 # Show help
 help:
 	@echo Available targets:
@@ -94,6 +118,8 @@ help:
 	@echo   calc    - Build and run calculator
 	@echo   drill   - Build and run drill
 	@echo   value_categories   - Build and run value categories
+	@echo   concurrency   - Build and run concurrency examples
+	@echo   quad_sums   - Build and run quad sums
 	@echo   run     - Run a specific program (use PROGRAM=dir\name)
 	@echo   help    - Show this help
 
