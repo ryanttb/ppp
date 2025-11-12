@@ -41,7 +41,7 @@ class Board;
 
 class Tile {
 public:
-    Tile(char char_data = ' ') : char_data(char_data), adjacencies(8, nullptr) {}
+    Tile(char char_data = '.') : char_data(char_data), adjacencies(8, nullptr) {}
 
     Tile* get_adjacent(Direction direction) {
         Tile* adj_tile = adjacencies[static_cast<int>(direction)];
@@ -88,7 +88,7 @@ public:
         _tiles[y][x].char_data = data;
         new_tile = &_tiles[y][x];
         set_adjacencies();
-      } else if (x < width && y < height) {
+      } else if (x + _index_offset < width && y + _index_offset < height) {
         Tile& t = get_tile(x, y);
         bool expand{false};
 
@@ -103,18 +103,18 @@ public:
 
         if (expand) {
           cerr << "TODO: expand" << endl;
-          //_tiles.insert(_tiles.begin(), vector<Tile>(width));
+          _tiles.insert(_tiles.begin(), vector<Tile>(width));
           _tiles.push_back(vector<Tile>(width));
           cerr << "  tiles.size: " << _tiles.size() << endl;
 
           for (auto& row : _tiles) {
-            //row.insert(row.begin(), Tile());
+            row.insert(row.begin(), Tile());
             row.push_back(Tile());
             cerr << "  row.size: " << row.size() << endl;
           }
-          width += 1;
-          height += 1;
-          //++_index_offset;
+          width += 2;
+          height += 2;
+          ++_index_offset;
           set_adjacencies();
           return add_tile(x, y, d, data);
         }
@@ -125,12 +125,12 @@ public:
     }
 
     std::string render() {
-      cout << "width: " << width << ", height: " << height << endl;
+      cout << "width: " << width << ", height: " << height << ", index_offset: " << _index_offset << endl;
 
         std::string str_rendered_board;
-        //cerr << "rows.size: " << _tiles.size() << endl;
+        cerr << "rows.size: " << _tiles.size() << endl;
         for (int y = 0; y < height; ++y) {
-          //cerr << "row[" << y << "].size: " << _tiles[y].size() << endl;
+          cerr << "row[" << y - _index_offset << "].size: " << _tiles[y].size() << endl;
         
             for (int x = 0; x < width; ++x) {
                 str_rendered_board += _tiles[y][x].char_data;
@@ -263,7 +263,7 @@ void test_carcassonne() {
   carcassonne.add_tile(0, 0, Direction::DOWN, DATA_CHARS[DataTypes::Land]);
   cout << carcassonne.render() << endl;
 
-  carcassonne.add_tile(0, 0, Direction::DOWN, DATA_CHARS[DataTypes::Land]);
+  carcassonne.add_tile(0, 0, Direction::LEFT, DATA_CHARS[DataTypes::Castle]);
   cout << carcassonne.render() << endl;
 
   //carcassonne.add_tile(0, 0, Direction::LEFT, DATA_CHARS[DataTypes::Castle]);
