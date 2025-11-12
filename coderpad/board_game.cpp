@@ -149,7 +149,43 @@ void test_chess() {
     }
 }
 
+void test_minesweeper() {
+  const char MINE = '*';
+  const string MINE_COUNTS = " 123456789";
+  const int WIDTH = 9;
+  const int HEIGHT = 9;
+
+  Board mine_sweeper(WIDTH, HEIGHT);
+  mine_sweeper(7, 0).char_data = MINE;
+  mine_sweeper(0, 3).char_data = MINE;
+  mine_sweeper(1, 3).char_data = MINE;
+  mine_sweeper(1, 4).char_data = MINE;
+
+  for (int x = 0; x < WIDTH; ++x) {
+    for (int y = 0; y < HEIGHT; ++y) {
+      Tile& t = mine_sweeper(x, y);
+      if (t.char_data == ' ') {
+        int adj_mine_count{0};
+        for (Direction d : ALL_DIRS) {
+          try {
+            Tile* dt = t.get_adjacent(d);
+            if (dt->char_data == MINE) {
+              ++adj_mine_count;
+            }
+            t.char_data = MINE_COUNTS[adj_mine_count];
+          } catch (TilePosError&) {
+            // pass
+          }
+        }
+      }
+    }
+  }
+
+  string render_test = mine_sweeper.render();
+  cout << render_test << endl;
+}
+
 int main() {
-  test_chess();
+  test_minesweeper();
   return 0;
 }
