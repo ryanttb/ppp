@@ -61,23 +61,77 @@ class Board {
 public:
     Board(int width, int height) : width(width), height(height) {
         _tiles.resize(height, std::vector<Tile>(width));
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                _tiles[y][x].set_adjacencies(this, x, y);
-            }
-        }
+        set_adjacencies();
     }
 
-    Tile* get_tile(int x, int y) {
-        if (x < 0 || x >= width || y < 0 || y >= height) {
+    Tile& get_tile(int x, int y) {
+        if (x + _index_offset < 0 || x + _index_offset >= width || y + _index_offset < 0 || y + _index_offset >= height) {
             throw TilePosError();
         }
-        return &_tiles[y][x];
+        return _tiles[y + _index_offset][x + _index_offset];
+    }
+
+    /**
+     * \brief   Add a new Tile to the board adjacent to an existing tile
+     * \throws  TilePosError if board has size but start tile does not exist
+     * Tile at either must exist or the board must be empty,
+     * in which case the board will be started with a new tile and its position is 0, 0
+     */
+    Tile* add_tile(int x, int y, Direction d, char data) {
+      Tile* new_tile = nullptr;
+
+      if (width == 0 && height == 0) {
+        width = 1;
+        height = 1;
+        _index_offset = 0;
+        _tiles.resize(height, vector<Tile>(width));
+        _tiles[y][x].char_data = data;
+        new_tile = &_tiles[y][x];
+        set_adjacencies();
+      } else if (x < width && y < height) {
+        Tile& t = get_tile(x, y);
+        bool expand{false};
+
+        try {
+          Tile* adj_tile = t.get_adjacent(d);
+          adj_tile->char_data = data;
+          new_tile = adj_tile;
+        } catch(TilePosError&) {
+          cerr << "TODO: Add to board and retry" << endl;
+          expand = true;
+        }
+
+        if (expand) {
+          cerr << "TODO: expand" << endl;
+          //_tiles.insert(_tiles.begin(), vector<Tile>(width));
+          _tiles.push_back(vector<Tile>(width));
+          cerr << "  tiles.size: " << _tiles.size() << endl;
+
+          for (auto& row : _tiles) {
+            //row.insert(row.begin(), Tile());
+            row.push_back(Tile());
+            cerr << "  row.size: " << row.size() << endl;
+          }
+          width += 1;
+          height += 1;
+          //++_index_offset;
+          set_adjacencies();
+          return add_tile(x, y, d, data);
+        }
+      } else {
+        throw TilePosError();
+      }
+      return new_tile;
     }
 
     std::string render() {
+      cout << "width: " << width << ", height: " << height << endl;
+
         std::string str_rendered_board;
+        //cerr << "rows.size: " << _tiles.size() << endl;
         for (int y = 0; y < height; ++y) {
+          //cerr << "row[" << y << "].size: " << _tiles[y].size() << endl;
+        
             for (int x = 0; x < width; ++x) {
                 str_rendered_board += _tiles[y][x].char_data;
             }
@@ -87,10 +141,22 @@ public:
     }
 
     Tile& operator()(int x, int y) {
-        return _tiles[y][x];
+        return get_tile(x, y);
+    }
+
+
+    void set_adjacencies() {
+      for (int y = 0; y < height; ++y) {
+          for (int x = 0; x < width; ++x) {
+              _tiles[y][x].set_adjacencies(this, x, y);
+          }
+      }
     }
 
     int width, height;
+
+private:
+    int _index_offset{0}; //< as we expand negative, we want to keep 0 where it was
     std::vector<std::vector<Tile>> _tiles;
 };
 
@@ -103,8 +169,8 @@ void Tile::set_adjacencies(Board* board_owner, int x, int y) {
 
     for (const auto& [direc, offset_x, offset_y] : direction_offset_coords) {
         try {
-            Tile* adj_tile = board_owner->get_tile(x + offset_x, y + offset_y);
-            adjacencies[static_cast<int>(direc)] = adj_tile;
+            Tile& adj_tile = board_owner->get_tile(x + offset_x, y + offset_y);
+            adjacencies[static_cast<int>(direc)] = &adj_tile;
         } catch (TilePosError&) {
             // pass
         }
@@ -185,7 +251,31 @@ void test_minesweeper() {
   cout << render_test << endl;
 }
 
+void test_carcassonne() {
+  Board carcassonne(0, 0);
+  enum DataTypes {
+    Land, Road, Castle
+  };
+  const string DATA_CHARS = "LRC";
+
+  cout << carcassonne.render() << endl;
+
+  carcassonne.add_tile(0, 0, Direction::DOWN, DATA_CHARS[DataTypes::Land]);
+  cout << carcassonne.render() << endl;
+
+  carcassonne.add_tile(0, 0, Direction::DOWN, DATA_CHARS[DataTypes::Land]);
+  cout << carcassonne.render() << endl;
+
+  //carcassonne.add_tile(0, 0, Direction::LEFT, DATA_CHARS[DataTypes::Castle]);
+  //cout << carcassonne.render() << endl;
+
+}
+
 int main() {
-  test_minesweeper();
+  try {
+    test_carcassonne();
+  } catch (TilePosError& err) {
+    cerr << err.what() << endl;
+  }
   return 0;
 }
