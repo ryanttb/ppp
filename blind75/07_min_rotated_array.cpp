@@ -55,16 +55,33 @@ public:
         int n = nums.size();
         cout << "n: " << n << endl;
 
-        int leftIdx{0};
-        int rightIdx{n - 1};
-
         int rotated{0};
 
+        if (n <= 3) {
+            return *min_element(nums.begin(), nums.end());
+        }
+
         for (int i{0}; i < n; ++i) {
-            int left = nums[leftIdx + i];
-            int right = nums[rightIdx - i];
+            int leftIdx = i;
+            int rightIdx = n - 1 - i;
+
+            cout << "leftIdx: " << leftIdx << ", rightIdx: " << rightIdx << endl;
+
+            if (rightIdx - leftIdx < 3) {
+                return *min_element(nums.begin() + leftIdx, nums.end() + rightIdx);
+            }
+
+            int left = nums[leftIdx];
+            int right = nums[rightIdx];
 
             cout << "left: " << left << ", right: " << right << endl;
+
+            if (leftIdx == rightIdx && n >= 3) {
+                if (nums[leftIdx - 1] > nums[leftIdx]) {
+                    ++rotated;
+                }
+                break;
+            }
 
             if (left > right) {
                 ++rotated;
@@ -72,6 +89,7 @@ public:
                 break;
             }
         }
+
         cout << "rotated: " << rotated << endl;
         if (rotated == 0) {
             return nums[0];
